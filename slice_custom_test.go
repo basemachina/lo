@@ -85,3 +85,51 @@ func TestHasDuplicatesBy(t *testing.T) {
 		})
 	}
 }
+
+func TestReduce(t *testing.T) {
+	tests := map[string]struct {
+		collection  []int
+		accumulator func(agg int, item int) int
+		initial     int
+		want        int
+	}{
+		"sum": {
+			collection:  []int{1, 2, 3, 4, 5},
+			accumulator: func(agg int, item int) int { return agg + item },
+			initial:     0,
+			want:        15,
+		},
+		"product": {
+			collection:  []int{1, 2, 3, 4},
+			accumulator: func(agg int, item int) int { return agg * item },
+			initial:     1,
+			want:        24,
+		},
+		"empty": {
+			collection:  []int{},
+			accumulator: func(agg int, item int) int { return agg + item },
+			initial:     10,
+			want:        10,
+		},
+	}
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			if got := Reduce(tt.collection, tt.accumulator, tt.initial); got != tt.want {
+				t.Errorf("Reduce() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestReduceWithIndex(t *testing.T) {
+	collection := []int{1, 2, 3}
+	accumulator := func(agg int, item int, index int) int { return agg + item + index }
+	initial := 0
+
+	result := ReduceWithIndex(collection, accumulator, initial)
+	expected := 9 // (0+1+0)=1, (1+2+1)=4, (4+3+2)=9
+
+	if result != expected {
+		t.Errorf("ReduceWithIndex() = %v, want %v", result, expected)
+	}
+}

@@ -118,3 +118,22 @@ func FilterWithIndex[V any](collection []V, predicate func(item V, index int) bo
 
 	return result
 }
+
+// Reduce reduces collection to a value which is the accumulated result of running each element in collection
+// through accumulator, where each successive invocation is supplied the return value of the previous.
+func Reduce[T any, R any](collection []T, accumulator func(agg R, item T) R, initial R) R {
+	return ReduceWithIndex(collection, func(agg R, item T, _ int) R {
+		return accumulator(agg, item)
+	}, initial)
+}
+
+// ReduceWithIndex reduces collection to a value which is the accumulated result of running each element in collection
+// through accumulator, where each successive invocation is supplied the return value of the previous.
+// The accumulator function receives the index of each element.
+func ReduceWithIndex[T any, R any](collection []T, accumulator func(agg R, item T, index int) R, initial R) R {
+	for i := range collection {
+		initial = accumulator(initial, collection[i], i)
+	}
+
+	return initial
+}
