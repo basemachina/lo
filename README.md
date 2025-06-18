@@ -1,5 +1,7 @@
 # lo
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/basemachina/lo.svg)](https://pkg.go.dev/github.com/basemachina/lo)
+
 A Go utility library providing functional programming helpers for slices, maps, and other data structures. This library is based on and inspired by [samber/lo](https://github.com/samber/lo), offering type-safe operations using Go generics.
 
 ## Installation
