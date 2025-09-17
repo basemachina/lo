@@ -1,6 +1,10 @@
 package lo
 
-import "testing"
+import (
+	"errors"
+	"slices"
+	"testing"
+)
 
 func TestHasDuplicates(t *testing.T) {
 	tests := map[string]struct {
@@ -131,5 +135,104 @@ func TestReduceWithIndex(t *testing.T) {
 
 	if result != expected {
 		t.Errorf("ReduceWithIndex() = %v, want %v", result, expected)
+	}
+}
+
+func TestFilterWithError(t *testing.T) {
+	tests := map[string]struct {
+		collection []int
+		predicate  func(int) (bool, error)
+		want       []int
+		wantErr    bool
+	}{
+		"filter even numbers": {
+			collection: []int{1, 2, 3, 4, 5, 6},
+			predicate:  func(item int) (bool, error) { return item%2 == 0, nil },
+			want:       []int{2, 4, 6},
+			wantErr:    false,
+		},
+		"filter with error on specific value": {
+			collection: []int{1, 2, 3, 4, 5},
+			predicate: func(item int) (bool, error) {
+				if item == 3 {
+					return false, errors.New("error on value 3")
+				}
+				return item%2 == 0, nil
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		// other cases are tested in TestFilterWithIndexError
+	}
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := FilterWithError(tt.collection, tt.predicate)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("FilterWithError() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !slices.Equal(got, tt.want) {
+				t.Errorf("FilterWithError() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestFilterWithIndexError(t *testing.T) {
+	tests := map[string]struct {
+		collection []int
+		predicate  func(int, int) (bool, error)
+		want       []int
+		wantErr    bool
+	}{
+		"filter by even index": {
+			collection: []int{10, 20, 30, 40, 50},
+			predicate:  func(item int, index int) (bool, error) { return index%2 == 0, nil },
+			want:       []int{10, 30, 50},
+			wantErr:    false,
+		},
+		"filter with error at specific index": {
+			collection: []int{1, 2, 3, 4, 5},
+			predicate: func(item int, index int) (bool, error) {
+				if index == 2 {
+					return false, errors.New("error at index 2")
+				}
+				return item%2 == 0, nil
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		"empty collection": {
+			collection: []int{},
+			predicate:  func(item int, index int) (bool, error) { return index%2 == 0, nil },
+			want:       []int{},
+			wantErr:    false,
+		},
+		"filter by value and index": {
+			collection: []int{1, 2, 3, 4, 5, 6},
+			predicate: func(item int, index int) (bool, error) {
+				return item%2 == 0 && index < 4, nil
+			},
+			want:    []int{2, 4},
+			wantErr: false,
+		},
+		"all elements filtered out": {
+			collection: []int{1, 3, 5},
+			predicate:  func(item int, index int) (bool, error) { return index > 10, nil },
+			want:       []int{},
+			wantErr:    false,
+		},
+	}
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := FilterWithIndexError(tt.collection, tt.predicate)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("FilterWithIndexError() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !slices.Equal(got, tt.want) {
+				t.Errorf("FilterWithIndexError() = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }
