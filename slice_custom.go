@@ -119,6 +119,32 @@ func FilterWithIndex[V any](collection []V, predicate func(item V, index int) bo
 	return result
 }
 
+// FilterWithError iterates over elements of collection, returning an array of all elements predicate returns truthy for.
+// If predicate returns an error the function shortcircuits and the error is returned alongside nil.
+func FilterWithError[V any](collection []V, predicate func(item V) (bool, error)) ([]V, error) {
+	return FilterWithIndexError(collection, func(item V, _ int) (bool, error) {
+		return predicate(item)
+	})
+}
+
+// FilterWithIndexError iterates over elements of collection, returning an array of all elements predicate returns truthy for.
+// If predicate returns an error the function shortcircuits and the error is returned alongside nil.
+func FilterWithIndexError[V any](collection []V, predicate func(item V, index int) (bool, error)) ([]V, error) {
+	result := make([]V, 0, len(collection))
+
+	for i, item := range collection {
+		ok, err := predicate(item, i)
+		if err != nil {
+			return nil, err
+		}
+		if ok {
+			result = append(result, item)
+		}
+	}
+
+	return result, nil
+}
+
 // Reduce reduces collection to a value which is the accumulated result of running each element in collection
 // through accumulator, where each successive invocation is supplied the return value of the previous.
 func Reduce[T any, R any](collection []T, accumulator func(agg R, item T) R, initial R) R {
