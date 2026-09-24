@@ -48,4 +48,4 @@ func main() {
 
 ## Requirements
 
-- Go 1.24.0 or later
+- Go 1.26.0 or later
